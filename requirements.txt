@@ -1,0 +1,2 @@
+gradio==4.0.1  # Ensure you use the version you are working with
+huggingface_hub==0.17.4  # Ensure you use the version you are working with
