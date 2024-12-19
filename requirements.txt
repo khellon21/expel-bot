@@ -1,2 +1,4 @@
-gradio==4.0.1  # Ensure you use the version you are working with
-huggingface_hub==0.17.4  # Ensure you use the version you are working with
+Flask==3.0.0
+Flask-CORS==4.0.0
+flask-ngrok==0.0.25
+requests==2.31.0
