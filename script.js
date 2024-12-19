@@ -3,28 +3,53 @@ const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
 
 let conversationHistory = [];
+let isProcessing = false;
 
 function addMessage(content, isUser = false) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-    messageDiv.textContent = content;
+    
+    if (!isUser) {
+        // Add typing animation for bot messages
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-animation';
+        messageDiv.appendChild(typingDiv);
+        
+        // Simulate typing effect
+        let i = 0;
+        const typing = setInterval(() => {
+            if (i < content.length) {
+                typingDiv.textContent += content[i];
+                i++;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } else {
+                clearInterval(typing);
+            }
+        }, 30);
+    } else {
+        messageDiv.textContent = content;
+    }
+    
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function sendMessage() {
+    if (isProcessing) return;
+    
     const message = userInput.value.trim();
     if (!message) return;
 
-    // Add user message to chat
+    isProcessing = true;
+    sendButton.disabled = true;
+    
     addMessage(message, true);
     userInput.value = '';
 
-    // Add message to conversation history
     conversationHistory.push({"role": "user", "content": message});
 
     try {
-        const response = await fetch('http://localhost:5000/chat', {
+        const response = await fetch('/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -41,15 +66,15 @@ async function sendMessage() {
             throw new Error(data.error);
         }
         
-        const botResponse = data.response;
-        
-        // Add bot response to chat and conversation history
-        addMessage(botResponse);
-        conversationHistory.push({"role": "assistant", "content": botResponse});
+        addMessage(data.response);
+        conversationHistory.push({"role": "assistant", "content": data.response});
 
     } catch (error) {
         console.error('Error:', error);
         addMessage('Sorry, I encountered an error. Please try again.');
+    } finally {
+        isProcessing = false;
+        sendButton.disabled = false;
     }
 }
 
@@ -60,4 +85,8 @@ userInput.addEventListener('keypress', (e) => {
         e.preventDefault();
         sendMessage();
     }
-}); 
+});
+
+// Focus input on load
+userInput.focus();
+  
